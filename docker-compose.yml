@@ -1,0 +1,40 @@
+name: hostinger-ai
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    restart: always
+    depends_on:
+      - ollama
+    ports:
+      - "3000:8080"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+      - ENABLE_API_KEYS=true
+    volumes:
+      - open-webui_data:/app/backend/data
+
+  api-docs:
+    image: swaggerapi/swagger-ui
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      - SWAGGER_JSON=/spec/openapi.json
+    volumes:
+      - ./docs/openapi.json:/spec/openapi.json:ro
+
+volumes:
+  ollama_data:
+    external: true
+    name: ollama-1kgj_ollama
+  open-webui_data:
+    external: true
+    name: open-webui
